@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skyler's Arcade</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #0f0f1b; color: white; margin: 0; padding: 20px; }
+        
+        /* HOME SCREEN */
+        #home-screen { padding: 50px 20px; }
+        .arcade-title { font-size: 3.5rem; color: #4ecca3; text-shadow: 0 0 20px #4ecca3; margin-bottom: 40px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; max-width: 600px; margin: 0 auto; }
+        .menu-card { background: #16213e; border: 2px solid #0f3460; padding: 30px; border-radius: 15px; cursor: pointer; transition: 0.3s; font-size: 1.2rem; font-weight: bold; }
+        .menu-card:hover { transform: translateY(-10px); border-color: #4ecca3; background: #1b2a4e; box-shadow: 0 0 20px rgba(78, 204, 163, 0.3); }
+
+        /* NAVIGATION */
+        .top-nav { display: none; margin-bottom: 20px; justify-content: center; gap: 10px; }
+        .nav-btn { padding: 10px 15px; cursor: pointer; border: 2px solid #4ecca3; border-radius: 8px; background: transparent; color: #4ecca3; font-weight: bold; }
+        .nav-btn.active-btn { background: #4ecca3; color: #1a1a2e; }
+        .home-icon { background: #e94560 !important; color: white !important; border-color: #e94560 !important; }
+
+        /* GAME CONTAINERS */
+        .game-container { background: #16213e; padding: 25px; border-radius: 20px; border: 2px solid #0f3460; display: none; margin: 0 auto; max-width: 480px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); position: relative; min-height: 420px; }
+
+        /* SCORE STYLES */
+        .score-board { font-size: 1.1rem; color: #f1c40f; margin-bottom: 15px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 8px; }
+
+        /* GAME ELEMENTS */
+        .slot { font-size: 3rem; background: #0f3460; padding: 15px; border-radius: 12px; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border: 2px solid #4ecca3; margin: 0 auto; }
+        .ttt-grid { display: grid; grid-template-columns: repeat(3, 90px); grid-gap: 12px; justify-content: center; margin: 15px auto; }
+        .ttt-cell { width: 90px; height: 90px; background: #0f0f1b; border-radius: 10px; font-size: 2.5rem; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #4ecca3; }
+        .mine-grid { display: grid; grid-template-columns: repeat(10, 34px); grid-gap: 4px; justify-content: center; margin: 15px auto; background: #0f3460; padding: 10px; border-radius: 8px; width: fit-content; }
+        .mine-cell { width: 34px; height: 34px; background: #1a1a2e; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #333; font-weight: bold; }
+        .mine-cell.revealed { background: #4ecca3 !important; color: #1a1a2e !important; }
+        .mine-cell.bomb { background: #e94560 !important; }
+
+        /* MENU POPUP */
+        #choice-menu { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a2e; border: 4px solid #4ecca3; padding: 25px; border-radius: 20px; z-index: 999; box-shadow: 0 0 100px rgba(0,0,0,1); }
+        .menu-btn { display: block; width: 180px; margin: 12px 0; padding: 15px; cursor: pointer; border-radius: 10px; border: none; font-weight: bold; font-size: 1.1rem; }
+
+        .msg-text { font-size: 1.2rem; color: #4ecca3; margin: 10px 0; font-weight: bold; }
+        .reset-btn { margin-top: 10px; background: #e94560; color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="home-screen">
+        <h1 class="arcade-title">SKYLER'S ARCADE</h1>
+        <div class="menu-grid">
+            <div class="menu-card" onclick="showGame('rps')">✊ Rock Paper Scissors</div>
+            <div class="menu-card" onclick="showGame('ttt')">⭕ Tic Tac Toe</div>
+            <div class="menu-card" onclick="showGame('mine')">💣 Minesweeper</div>
+        </div>
+    </div>
+
+    <div class="top-nav" id="top-nav">
+        <button class="nav-btn home-icon" onclick="goHome()">🏠 Home</button>
+        <button id="btn-rps" class="nav-btn" onclick="showGame('rps')">RPS</button>
+        <button id="btn-ttt" class="nav-btn" onclick="showGame('ttt')">TTT</button>
+        <button id="btn-mine" class="nav-btn" onclick="showGame('mine')">Mines</button>
+    </div>
+
+    <div id="rps-game" class="game-container">
+        <h3>Rock Paper Scissors</h3>
+        <div class="score-board">Player: <span id="rps-p-score">0</span> | CPU: <span id="rps-c-score">0</span></div>
+        <div style="display:flex; justify-content: center; gap: 20px;">
+            <div><small>YOU</small><div id="u-slot" class="slot">❓</div></div>
+            <div><small>CPU</small><div id="c-slot" class="slot">❓</div></div>
+        </div>
+        <p id="rps-msg" class="msg-text">Choose your weapon!</p>
+        <button class="nav-btn" style="font-size: 2rem; width: 70px; height: 70px; border-radius: 50%;" onclick="playRPS('rock', '✊')">✊</button>
+        <button class="nav-btn" style="font-size: 2rem; width: 70px; height: 70px; border-radius: 50%;" onclick="playRPS('paper', '✋')">✋</button>
+        <button class="nav-btn" style="font-size: 2rem; width: 70px; height: 70px; border-radius: 50%;" onclick="playRPS('scissors', '✌️')">✌️</button>
+    </div>
+
+    <div id="ttt-game" class="game-container">
+        <h3>Tic Tac Toe</h3>
+        <div class="score-board">Player (X): <span id="ttt-p-score">0</span> | CPU (O): <span id="ttt-c-score">0</span></div>
+        <p id="ttt-msg" class="msg-text">Your turn!</p>
+        <div class="ttt-grid" id="ttt-board"></div>
+        <button class="reset-btn" onclick="initTTT()">Reset Board</button>
+    </div>
+
+    <div id="mine-game" class="game-container">
+        <h3>Minesweeper</h3>
+        <p id="mine-msg" class="msg-text">Bombs: 15</p>
+        <div id="choice-menu">
+            <h2 style="margin:0 0 15px 0; color:white;">Action?</h2>
+            <button id="menu-rev" class="menu-btn" style="background: #4ecca3;" onclick="handleReveal()">Reveal 🔍</button>
+            <button id="menu-flg" class="menu-btn" style="background: #f1c40f;" onclick="handleFlag()">Flag 🚩</button>
+            <button class="menu-btn" style="background: #555; color: white;" onclick="closeMenu()">Cancel ✖</button>
+        </div>
+        <div class="mine-grid" id="mine-board"></div>
+        <button class="reset-btn" onclick="initMinesweeper()">New Game</button>
+    </div>
+
+<script>
+    // Global Scores
+    let rpsP = 0, rpsC = 0;
+    let tttP = 0, tttC = 0;
+
+    function goHome() {
+        document.getElementById('home-screen').style.display = 'block';
+        document.getElementById('top-nav').style.display = 'none';
+        document.querySelectorAll('.game-container').forEach(g => g.style.display = 'none');
+    }
+
+    function showGame(type) {
+        document.getElementById('home-screen').style.display = 'none';
+        document.getElementById('top-nav').style.display = 'flex';
+        document.querySelectorAll('.game-container').forEach(g => g.style.display = 'none');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active-btn'));
+        document.getElementById(type + '-game').style.display = 'block';
+        document.getElementById('btn-' + type).classList.add('active-btn');
+        if(type === 'ttt') initTTT();
+        if(type === 'mine') initMinesweeper();
+    }
+
+    // RPS
+    function playRPS(u, e) {
+        const o = ['rock','paper','scissors']; const em = {rock:'✊',paper:'✋',scissors:'✌️'};
+        const c = o[Math.floor(Math.random()*3)];
+        document.getElementById('u-slot').innerText = e;
+        document.getElementById('c-slot').innerText = em[c];
+        if (u === c) document.getElementById('rps-msg').innerText = "Tie!";
+        else if ((u==='rock'&&c==='scissors')||(u==='paper'&&c==='rock')||(u==='scissors'&&c==='paper')) {
+            document.getElementById('rps-msg').innerText = "Winner! 🏆"; rpsP++;
+        } else {
+            document.getElementById('rps-msg').innerText = "CPU Win! 🤖"; rpsC++;
+        }
+        document.getElementById('rps-p-score').innerText = rpsP;
+        document.getElementById('rps-c-score').innerText = rpsC;
+    }
+
+    // TTT Smart
+    let tBoard = []; let tActive = true;
+    const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    function initTTT() {
+        tBoard = Array(9).fill(""); tActive = true;
+        const c = document.getElementById('ttt-board'); c.innerHTML = '';
+        document.getElementById('ttt-msg').innerText = "Your turn (X)";
+        for(let i=0; i<9; i++) {
+            let d = document.createElement('div'); d.className = 'ttt-cell';
+            d.onclick = () => { if(tBoard[i]==="" && tActive) { tBoard[i]="X"; d.innerText="X"; if(!checkT()) setTimeout(smartCPU, 400); } };
+            c.appendChild(d);
+        }
+    }
+    function smartCPU() {
+        if(!tActive) return;
+        let m = findS("O"); if(m === -1) m = findS("X");
+        if(m === -1 && tBoard[4] === "") m = 4;
+        if(m === -1) { let e = tBoard.map((v,i)=>v===""?i:null).filter(v=>v!==null); m = e[Math.floor(Math.random()*e.length)]; }
+        if(m !== undefined) { tBoard[m]="O"; document.getElementsByClassName('ttt-cell')[m].innerText="O"; checkT(); }
+    }
+    function findS(sym) {
+        for (let s of wins) {
+            let v = [tBoard[s[0]], tBoard[s[1]], tBoard[s[2]]];
+            if (v.filter(x => x === sym).length === 2 && v.filter(x => x === "").length === 1) return s[v.indexOf("")];
+        } return -1;
+    }
+    function checkT() {
+        for(let s of wins) {
+            if(tBoard[s[0]] && tBoard[s[0]]===tBoard[s[1]] && tBoard[s[0]]===tBoard[s[2]]) {
+                document.getElementById('ttt-msg').innerText = tBoard[s[0]] + " Wins!";
+                if(tBoard[s[0]]==="X") tttP++; else tttC++;
+                updateTTTScore(); tActive = false; return true;
+            }
+        }
+        if(!tBoard.includes("")) { document.getElementById('ttt-msg').innerText = "Draw!"; tActive = false; return true; }
+        return false;
+    }
+    function updateTTTScore() {
+        document.getElementById('ttt-p-score').innerText = tttP;
+        document.getElementById('ttt-c-score').innerText = tttC;
+    }
+
+    // Minesweeper (Classic logic kept)
+    let actCell = null; let mB = []; let mS = []; let mO = false;
+    function initMinesweeper() {
+        mO = false; mB = Array(100).fill(false); mS = Array(100).fill(0);
+        const con = document.getElementById('mine-board'); con.innerHTML = '';
+        document.getElementById('mine-msg').innerText = "Bombs: 15";
+        let c = 0; while(c < 15) { let r = Math.floor(Math.random()*100); if(!mB[r]) { mB[r]=true; c++; } }
+        for(let i=0; i<100; i++) {
+            let d = document.createElement('div'); d.className='mine-cell'; d.id='cell-'+i;
+            d.onclick = () => { if(!mO && mS[i]!==2) { 
+                actCell=i; 
+                document.getElementById('menu-rev').style.display = mS[i]===1 ? 'none' : 'block';
+                document.getElementById('menu-flg').innerText = mS[i]===1 ? 'Remove Flag' : 'Flag';
+                document.getElementById('choice-menu').style.display='block';
+            }}; con.appendChild(d);
+        }
+    }
+    function closeMenu() { document.getElementById('choice-menu').style.display='none'; }
+    function handleFlag() { if(mS[actCell]===1) { mS[actCell]=0; document.getElementById('cell-'+actCell).innerText=''; } else { mS[actCell]=1; document.getElementById('cell-'+actCell).innerText='🚩'; } closeMenu(); }
+    function handleReveal() { if(mS[actCell]===1) return; closeMenu(); revealM(actCell); }
+    function revealM(i) {
+        if(mS[i]!==0 || mO) return; const cell = document.getElementById('cell-'+i);
+        if(mB[i]) { cell.classList.add('bomb'); cell.innerText='💣'; mO=true; document.getElementById('mine-msg').innerText="BOOM!"; mB.forEach((b,x)=>{if(b)document.getElementById('cell-'+x).innerText='💣';}); }
+        else { mS[i]=2; cell.classList.add('revealed'); let n=getN(i); let bc=n.filter(x=>mB[x]).length; cell.innerText=bc>0?bc:''; if(bc===0) n.forEach(x=>revealM(x)); if(mS.filter(s=>s===2).length===85) { document.getElementById('mine-msg').innerText="WIN! 🏆"; mO=true; } }
+    }
+    function getN(i) { let r=Math.floor(i/10); let c=i%10; let res=[]; for(let x=-1;x<=1;x++) { for(let y=-1;y<=1;y++) { let nr=r+x,nc=c+y; if(nr>=0&&nr<10&&nc>=0&&nc<10) res.push(nr*10+nc); } } return res; }
+</script>
+</body>
+</html>
