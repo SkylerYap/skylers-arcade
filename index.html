@@ -2,32 +2,28 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Skyler's Arcade</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #0f0f1b; color: white; margin: 0; padding: 20px; overflow-x: hidden; }
-        h1 { color: #4ecca3; text-shadow: 0 0 20px #4ecca3; }
-        #home-screen { padding: 50px 20px; }
-        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; max-width: 700px; margin: 0 auto; }
-        .menu-card { background: #16213e; border: 2px solid #0f3460; padding: 25px; border-radius: 15px; cursor: pointer; transition: 0.3s; font-weight: bold; }
-        .menu-card:hover { transform: translateY(-5px); border-color: #4ecca3; background: #1b2a4e; }
-        .top-nav { display: none; margin-bottom: 20px; justify-content: center; gap: 10px; flex-wrap: wrap; }
-        .nav-btn { padding: 8px 12px; cursor: pointer; border: 2px solid #4ecca3; border-radius: 8px; background: transparent; color: #4ecca3; font-weight: bold; }
-        .active-btn { background: #4ecca3; color: #1a1a2e; }
-        .home-icon { background: #e94560 !important; color: white !important; border: none; }
-        .game-container { background: #16213e; padding: 20px; border-radius: 20px; border: 2px solid #0f3460; display: none; margin: 0 auto; max-width: 500px; position: relative; min-height: 400px; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #0f0f1b; color: white; margin: 0; padding: 10px; overflow-x: hidden; touch-action: manipulation; }
+        h1 { color: #4ecca3; font-size: 1.8rem; margin: 10px 0; }
         
-        /* DINO CANVAS */
-        #dino-canvas { background: #1a1a2e; border-bottom: 4px solid #4ecca3; display: block; margin: 0 auto; border-radius: 10px; touch-action: none; }
-        .dino-score-box { display: flex; justify-content: space-around; font-size: 1.1rem; color: #f1c40f; margin-top: 10px; font-weight: bold; }
-        .reset-btn { margin-top: 15px; background: #e94560; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1.1rem; transition: 0.2s; }
-        .reset-btn:hover { background: #ff5e78; transform: scale(1.05); }
+        /* MENU */
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-width: 400px; margin: 0 auto; padding: 10px; }
+        .menu-card { background: #16213e; border: 2px solid #0f3460; padding: 20px; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
+        
+        /* NAV */
+        .top-nav { display: none; margin-bottom: 15px; justify-content: center; gap: 8px; flex-wrap: wrap; }
+        .nav-btn { padding: 8px 12px; cursor: pointer; border: 2px solid #4ecca3; border-radius: 8px; background: transparent; color: #4ecca3; font-weight: bold; font-size: 0.8rem; }
+        .active-btn { background: #4ecca3; color: #1a1a2e; }
+        
+        /* CONTAINERS */
+        .game-container { background: #16213e; padding: 15px; border-radius: 20px; border: 2px solid #0f3460; display: none; margin: 0 auto; max-width: 420px; position: relative; }
 
-        /* OTHER GAMES (Hidden for brevity but functional in code) */
-        .ttt-grid { display: grid; grid-template-columns: repeat(3, 80px); gap: 10px; justify-content: center; margin: 10px auto; }
-        .ttt-cell { width: 80px; height: 80px; background: #0f0f1b; border: 1px solid #4ecca3; border-radius: 10px; font-size: 2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .mine-grid { display: grid; grid-template-columns: repeat(10, 32px); gap: 4px; justify-content: center; margin: 10px auto; background: #0f3460; padding: 8px; border-radius: 8px; }
-        .mine-cell { width: 32px; height: 32px; background: #1a1a2e; border: 1px solid #333; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; }
+        /* DINO CANVAS (Responsive) */
+        #dino-canvas { background: #1a1a2e; border-bottom: 4px solid #4ecca3; display: block; margin: 0 auto; width: 100%; max-width: 400px; height: auto; border-radius: 10px; touch-action: none; }
+        
+        .reset-btn { margin-top: 15px; background: #e94560; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; }
     </style>
 </head>
 <body>
@@ -43,27 +39,25 @@
     </div>
 
     <div class="top-nav" id="top-nav">
-        <button class="nav-btn home-icon" onclick="goHome()">🏠 Home</button>
-        <button id="btn-rps" class="nav-btn" onclick="showGame('rps')">RPS</button>
-        <button id="btn-ttt" class="nav-btn" onclick="showGame('ttt')">TTT</button>
-        <button id="btn-mine" class="nav-btn" onclick="showGame('mine')">Mines</button>
+        <button class="nav-btn" style="background:#e94560; color:white; border:none;" onclick="goHome()">🏠 Home</button>
         <button id="btn-dino" class="nav-btn" onclick="showGame('dino')">Dino</button>
+        <button id="btn-mine" class="nav-btn" onclick="showGame('mine')">Mines</button>
     </div>
-
-    <div id="rps-game" class="game-container"><h3>RPS</h3><p id="rps-msg">Choose!</p><button class="nav-btn" onclick="playRPS('rock','✊')">✊</button><button class="nav-btn" onclick="playRPS('paper','✋')">✋</button><button class="nav-btn" onclick="playRPS('scissors','✌️')">✌️</button></div>
-    <div id="ttt-game" class="game-container"><h3>Tic Tac Toe</h3><div class="ttt-grid" id="ttt-board"></div><button class="reset-btn" onclick="initTTT()">Reset</button></div>
-    <div id="mine-game" class="game-container"><h3>Minesweeper</h3><div class="mine-grid" id="mine-board"></div><button class="reset-btn" onclick="initMinesweeper()">New Game</button></div>
 
     <div id="dino-game" class="game-container">
         <h3>Dino Run</h3>
-        <p>Press <b>SPACE</b> or <b>TAP</b> to Jump!</p>
+        <p style="font-size: 0.8rem;">Tap Screen to Jump!</p>
         <canvas id="dino-canvas" width="400" height="200"></canvas>
-        <div class="dino-score-box">
+        <div style="display:flex; justify-content: space-around; margin-top:10px; color:#f1c40f; font-weight:bold;">
             <div>Score: <span id="dino-score">0</span></div>
             <div>Best: <span id="dino-best">0</span></div>
         </div>
         <button id="dino-start-btn" class="reset-btn" onclick="startDino()">Start Game</button>
     </div>
+
+    <div id="rps-game" class="game-container"><h3>RPS</h3><button class="nav-btn" onclick="alert('Win!')">Play</button></div>
+    <div id="ttt-game" class="game-container"><h3>Tic Tac Toe</h3><button class="nav-btn" onclick="initTTT()">Reset</button></div>
+    <div id="mine-game" class="game-container"><h3>Minesweeper</h3><button class="nav-btn" onclick="initMinesweeper()">New</button></div>
 
 <script>
     function goHome() {
@@ -77,18 +71,17 @@
         document.getElementById('home-screen').style.display='none';
         document.getElementById('top-nav').style.display='flex';
         document.querySelectorAll('.game-container').forEach(g=>g.style.display='none');
-        document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active-btn'));
         document.getElementById(t+'-game').style.display='block';
-        document.getElementById('btn-'+t).classList.add('active-btn');
-        if(t==='dino') { document.getElementById('dino-best').innerText = localStorage.getItem('dinoBest') || 0; dinoActive=false; drawDinoStatic(); }
+        if(t==='dino') { document.getElementById('dino-best').innerText = localStorage.getItem('dinoBest') || 0; drawDinoStatic(); }
     }
 
-    // --- DINO ENGINE (ULTRA FIXED) ---
+    // --- DINO ENGINE (TIME-BASED SPEED) ---
     const canvas = document.getElementById('dino-canvas');
     const ctx = canvas.getContext('2d');
-    let dino = { x: 50, y: 150, w: 30, h: 30, dy: 0, jumpForce: 13, grounded: false };
+    let lastTime = 0;
+    let dino = { x: 50, y: 150, w: 30, h: 30, dy: 0, jumpForce: 14, grounded: false };
     let obstacles = [];
-    let gameSpeed = 5;
+    let gameSpeed = 250; // Pixels per second
     let dinoScore = 0;
     let dinoActive = false;
     let spawnTimer = 0;
@@ -100,47 +93,53 @@
     }
 
     function startDino() {
-        if (dinoActive) return; // Prevent multiple loops
-        dinoScore = 0; obstacles = []; gameSpeed = 5; dino.y = 150; dino.dy = 0;
-        spawnTimer = 0; dinoActive = true;
-        document.getElementById('dino-start-btn').style.display = "none"; // Hide button while playing
-        updateDino();
+        if (dinoActive) return;
+        dinoScore = 0; obstacles = []; gameSpeed = 250; dino.y = 150; dino.dy = 0;
+        spawnTimer = 0; dinoActive = true; lastTime = performance.now();
+        document.getElementById('dino-start-btn').style.display = "none";
+        requestAnimationFrame(updateDino);
     }
 
-    function updateDino() {
+    function updateDino(currentTime) {
         if (!dinoActive) return;
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = "#4ecca3"; ctx.beginPath(); ctx.moveTo(0, 180); ctx.lineTo(400, 180); ctx.stroke();
+        // Calculate Delta Time (seconds passed since last frame)
+        let deltaTime = (currentTime - lastTime) / 1000;
+        lastTime = currentTime;
+        if (deltaTime > 0.1) deltaTime = 0.016; // Prevent massive jumps if tab was inactive
 
-        dino.dy += 0.8; 
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = "#4ecca3"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, 180); ctx.lineTo(400, 180); ctx.stroke();
+
+        // Gravity & Jump based on time
+        dino.dy += 45 * deltaTime; // Gravity constant
         dino.y += dino.dy;
         if (dino.y + dino.h > 180) { dino.y = 180 - dino.h; dino.dy = 0; dino.grounded = true; } 
         else { dino.grounded = false; }
 
         ctx.fillStyle = "#4ecca3"; ctx.fillRect(dino.x, dino.y, dino.w, dino.h);
 
-        spawnTimer--;
+        // Spawn Obstacles
+        spawnTimer -= deltaTime;
         if (spawnTimer <= 0) {
-            obstacles.push({ x: canvas.width, y: 150, w: 20, h: 30 });
-            spawnTimer = Math.floor(Math.random() * 60) + 40; 
+            obstacles.push({ x: 420, y: 150, w: 20, h: 30 });
+            spawnTimer = 0.8 + Math.random() * 1.5; // Spawn every ~1-2 seconds
         }
 
         for (let i = 0; i < obstacles.length; i++) {
             let o = obstacles[i];
-            o.x -= gameSpeed;
+            o.x -= gameSpeed * deltaTime; // Move based on pixels per second
             ctx.fillStyle = "#e94560"; ctx.fillRect(o.x, o.y, o.w, o.h);
 
-            // COLLISION CHECK
+            // Collision
             if (dino.x < o.x + o.w && dino.x + dino.w > o.x && dino.y < o.y + o.h && dino.y + dino.h > o.y) {
-                gameOverDino();
-                return; // STOP THE LOOP IMMEDIATELY
+                gameOverDino(); return;
             }
         }
         obstacles = obstacles.filter(o => o.x > -50);
 
-        dinoScore += 0.15;
-        gameSpeed += 0.001;
+        dinoScore += 10 * deltaTime;
+        gameSpeed += 5 * deltaTime; // Slowly speed up
         document.getElementById('dino-score').innerText = Math.floor(dinoScore);
         requestAnimationFrame(updateDino);
     }
@@ -148,32 +147,21 @@
     function gameOverDino() {
         dinoActive = false;
         document.getElementById('dino-start-btn').innerText = "Try Again?";
-        document.getElementById('dino-start-btn').style.display = "inline-block"; // Show button back
-        
+        document.getElementById('dino-start-btn').style.display = "inline-block";
         let best = localStorage.getItem('dinoBest') || 0;
-        if (Math.floor(dinoScore) > best) {
-            localStorage.setItem('dinoBest', Math.floor(dinoScore));
-            document.getElementById('dino-best').innerText = Math.floor(dinoScore);
-        }
-
-        ctx.fillStyle = "rgba(0,0,0,0.7)"; ctx.fillRect(0,0,400,200);
-        ctx.fillStyle = "#e94560"; ctx.font = "bold 30px Segoe UI"; ctx.fillText("GAME OVER", 110, 100);
-        ctx.fillStyle = "white"; ctx.font = "18px Segoe UI"; ctx.fillText("Score: " + Math.floor(dinoScore), 160, 130);
+        if (Math.floor(dinoScore) > best) { localStorage.setItem('dinoBest', Math.floor(dinoScore)); document.getElementById('dino-best').innerText = Math.floor(dinoScore); }
+        ctx.fillStyle = "rgba(0,0,0,0.8)"; ctx.fillRect(0,0,400,200);
+        ctx.fillStyle = "#e94560"; ctx.font = "bold 25px Segoe UI"; ctx.fillText("GAME OVER", 125, 100);
     }
 
-    // Controls
-    window.addEventListener('keydown', (e) => { 
-        if (e.code === "Space") { 
-            e.preventDefault(); 
-            if (dino.grounded && dinoActive) dino.dy = -dino.jumpForce;
-        } 
-    });
-    canvas.addEventListener('mousedown', () => { if (dino.grounded && dinoActive) dino.dy = -dino.jumpForce; });
-
-    // Rest of your game logic (RPS, TTT, Mines) remains identical...
-    function playRPS(u,e){const o=['rock','paper','scissors'];const cpu=o[Math.floor(Math.random()*3)];document.getElementById('rps-msg').innerText=(u===cpu)?"Tie!":((u==='rock'&&cpu==='scissors')||(u==='paper'&&cpu==='rock')||(u==='scissors'&&cpu==='paper'))?"Win!":"Loss!";}
-    function initTTT(){const c=document.getElementById('ttt-board');c.innerHTML='';for(let i=0;i<9;i++){let d=document.createElement('div');d.className='ttt-cell';d.onclick=()=>{d.innerText="X";};c.appendChild(d);}}
-    function initMinesweeper(){const con=document.getElementById('mine-board');con.innerHTML='';for(let i=0;i<100;i++){let d=document.createElement('div');d.className='mine-cell';con.appendChild(d);}}
+    // Touch controls
+    const handleJump = (e) => { 
+        if (e.cancelable) e.preventDefault();
+        if (dino.grounded && dinoActive) dino.dy = -11.5; // Fixed jump power
+    };
+    window.addEventListener('keydown', (e) => { if(e.code === "Space") handleJump(e); });
+    canvas.addEventListener('touchstart', handleJump);
+    canvas.addEventListener('mousedown', handleJump);
 </script>
 </body>
 </html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe | Skyler's Arcade</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #0f0f1b; color: white; padding: 20px; }
+        .nav-header { display: flex; justify-content: space-between; max-width: 400px; margin: 0 auto 20px; }
+        .home-btn { background: #e94560; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; }
+        .ttt-grid { display: grid; grid-template-columns: repeat(3, 100px); gap: 10px; margin: 20px auto; justify-content: center; }
+        .ttt-cell { width: 100px; height: 100px; background: #16213e; border: 2px solid #4ecca3; border-radius: 15px; font-size: 3rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="nav-header">
+        <a href="index.html" class="home-btn">🏠 Home</a>
+        <span style="color:#4ecca3; font-weight:bold;">TIC TAC TOE</span>
+    </div>
+
+    <div id="ttt-board" class="ttt-grid"></div>
+    <p id="msg">Your Turn (X)</p>
+    <button onclick="location.reload()" style="padding:10px; border-radius:8px; cursor:pointer;">Restart</button>
+
+    <script>
+        // Insert the Tic Tac Toe Logic here (same as before)
+        let tBoard = Array(9).fill("");
+        const board = document.getElementById('ttt-board');
+        for(let i=0; i<9; i++) {
+            let cell = document.createElement('div');
+            cell.className = 'ttt-cell';
+            cell.onclick = () => { if(tBoard[i]===""){ tBoard[i]="X"; cell.innerText="X"; /* Add CPU logic here */ } };
+            board.appendChild(cell);
+        }
+    </script>
+</body>
+</html>
