@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skyler's Arcade | Home</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #0f0f1b; color: white; margin: 0; padding: 20px; }
+        .arcade-title { font-size: 3rem; color: #4ecca3; text-shadow: 0 0 20px #4ecca3; font-weight: 900; margin: 40px 0; }
+        .menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 500px; margin: 0 auto; }
+        .menu-card { 
+            background: #16213e; border: 2px solid #0f3460; padding: 30px; border-radius: 15px; 
+            cursor: pointer; transition: 0.3s; font-weight: bold; text-decoration: none; color: white; display: block;
+        }
+        .menu-card:hover { border-color: #4ecca3; background: #1b2a4e; transform: translateY(-5px); }
+    </style>
+</head>
+<body>
+    <h1 class="arcade-title">SKYLER'S ARCADE</h1>
+    <div class="menu-grid">
+        <a href="rps.html" class="menu-card">✊ RPS</a>
+        <a href="ttt.html" class="menu-card">⭕ Tic Tac Toe</a>
+        <a href="mines.html" class="menu-card">💣 Minesweeper</a>
+        <a href="dino.html" class="menu-card">🦖 Dino Run</a>
+        <a href="mastermind.html" class="menu-card" style="grid-column: span 2; border-color: #6366f1;">🧠 Mastermind Logic</a>
+    </div>
+</body>
+</html>
