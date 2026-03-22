@@ -23,17 +23,17 @@
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         
-        let dino = { x: 50, y: 150, w: 40, h: 40, dy: 0, jumpForce: 14, grounded: true };
+        // Physics Tuning
+        let dino = { x: 50, y: 150, w: 40, h: 40, dy: 0, jumpForce: 12, grounded: true };
         let obstacles = [];
         let active = false;
         let score = 0;
-        let gameSpeed = 280; // Speed increased from 200 to 280
+        let gameSpeed = 280; 
         let lastTime = 0;
         let spawnTimer = 0;
 
-        // --- NEW T-REX SPRITE (No more camel!) ---
         const dinoImg = new Image();
-        dinoImg.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path fill="%234ecca3" d="M25 5h10v5h-5v5h5v5h-10v-5h-5v5h-5v5h-5v5h-5v5h10v-5h5v5h5v-5h5v5h5v-25h-10zM30 10h2v2h-2z"/></svg>';
+        dinoImg.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><path fill="%234ecca3" d="M25 5h10v5h-5v5h5v5h-10v-5h-5v5h-5v5h-5v5h-5v5h10v-5h5v5h5v-25h-10zM30 10h2v2h-2z"/></svg>';
 
         const cactusImg = new Image();
         cactusImg.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 35"><path fill="%23e94560" d="M7 0h6v35H7zM0 10h7v5H0zM13 5h7v5h-7z"/></svg>';
@@ -54,26 +54,31 @@
         function loop(t) {
             if (!active) return;
             let dt = (t - lastTime) / 1000;
-            if (isNaN(dt)) dt = 0.016; 
+            if (isNaN(dt) || dt > 0.1) dt = 0.016; 
             lastTime = t;
 
             ctx.clearRect(0, 0, 400, 200);
+            
+            // Draw Ground
             ctx.strokeStyle = "#4ecca3";
             ctx.beginPath(); ctx.moveTo(0, 190); ctx.lineTo(400, 190); ctx.stroke();
 
-            // Gravity
-            dino.dy += 38 * dt; 
+            // GRAVITY TUNING - Increased gravity to pull him down faster
+            dino.dy += 45 * dt; 
             dino.y += dino.dy;
-            if (dino.y > 150) { dino.y = 150; dino.dy = 0; dino.grounded = true; }
 
-            // Draw T-Rex
+            if (dino.y > 150) {
+                dino.y = 150;
+                dino.dy = 0;
+                dino.grounded = true;
+            }
+
             ctx.drawImage(dinoImg, dino.x, dino.y, dino.w, dino.h);
 
             spawnTimer -= dt;
             if (spawnTimer <= 0) {
                 obstacles.push({ x: 420 });
-                // Spawning is slightly tighter for more challenge
-                spawnTimer = 1.0 + Math.random() * 0.8;
+                spawnTimer = 1.2 + Math.random();
             }
 
             for (let i = obstacles.length - 1; i >= 0; i--) {
@@ -81,34 +86,30 @@
                 o.x -= gameSpeed * dt;
                 ctx.drawImage(cactusImg, o.x, 155, 20, 35);
 
-                // Collision Detection
-                if (dino.x + 8 < o.x + 15 && dino.x + dino.w - 8 > o.x && dino.y + 35 > 155) {
+                // Tight Collision
+                if (dino.x + 10 < o.x + 15 && dino.x + dino.w - 10 > o.x && dino.y + 30 > 155) {
                     active = false;
                     document.getElementById('start-btn').style.display = 'inline-block';
-                    document.getElementById('start-btn').innerText = 'Try Again';
                 }
                 if (o.x < -50) obstacles.splice(i, 1);
             }
 
-            score += 15 * dt; // Score grows faster too
-            gameSpeed += 5 * dt; // Speed accelerates faster
+            score += 15 * dt;
+            gameSpeed += 4 * dt; 
             document.getElementById('score').innerText = Math.floor(score);
             requestAnimationFrame(loop);
         }
 
-        window.addEventListener('keydown', (e) => { 
-            if ((e.code === "Space" || e.code === "ArrowUp") && dino.grounded) { 
-                dino.dy = -13.5; 
-                dino.grounded = false; 
-            } 
-        });
-        canvas.addEventListener('touchstart', (e) => { 
-            e.preventDefault(); 
-            if (dino.grounded) { 
-                dino.dy = -13.5; 
-                dino.grounded = false; 
-            } 
-        });
+        function jump() {
+            if (dino.grounded && active) {
+                dino.dy = -12.5; // Lowered jump force
+                dino.grounded = false;
+            }
+        }
+
+        window.addEventListener('keydown', (e) => { if (e.code === "Space" || e.code === "ArrowUp") jump(); });
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); jump(); });
+        canvas.addEventListener('mousedown', jump);
     </script>
 </body>
 </html>
