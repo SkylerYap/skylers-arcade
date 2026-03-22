@@ -20,98 +20,57 @@
     <button onclick="start()" id="start-btn" class="btn-start">Start Game</button>
 
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        
+        const canvas = document.getElementById('canvas'); const ctx = canvas.getContext('2d');
         let dino = { x: 50, y: 150, w: 30, h: 30, dy: 0, jumpForce: 15, grounded: true };
-        let obstacles = [];
-        let active = false;
-        let score = 0;
-        let gameSpeed = 200; 
-        let lastTime = 0;
-        let spawnTimer = 0; // The "Cool Down" timer
+        let obstacles = []; let active = false; let score = 0; let gameSpeed = 200; let lastTime = performance.now(); let spawnTimer = 0;
 
-        function start() {
-            active = true;
-            score = 0;
-            obstacles = [];
-            gameSpeed = 200;
-            dino.y = 150;
-            dino.dy = 0;
-            spawnTimer = 0; 
-            document.getElementById('start-btn').style.display = 'none';
-            lastTime = performance.now();
-            requestAnimationFrame(loop);
-        }
+        // --- DINO SPRITE (Pixel Art SVG) ---
+        const dinoSprite = new Image();
+        dinoSprite.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMCAzMCI+PGcgZmlsbD0iIzRlY2NhMyI+PHBhdGggZD0iTTE4IDNoNXYzaDR2MmgxdjRoLTR2MWgxczAgMiAxIDRzMCAyIDEgNXYxaC01di0xaDFzMCAtMiAtMSAtNHMtMCAtMiAtMSAtNXMwIC0yIC0xIC00di0yaC01djJoLTJ2MmgtM3YyaC00djRoLTR2Mmg3djRoLTN2NGg3di00aC0zdi00aDdvNGgzdjRoM3YtNGgtM3YtNGgzdi00aDFzMCAtMiAxIC00czAgLTIgMSAtNXYtMWgtNXYxaDFzMCAtMiAtMSAtNHMwIC0yIC0xIC01czAgLTIgMSAtNHYtMloiLz48cGF0aCBmaWxsPSJ3aGl0ZSIgZD0iTTE4IDNoNXYzSDM4VjNoLTV6TTE4IDhoNXYzSDM4VjhoLTV6Ii8+PC9nPjwvc3ZnPg==";
+
+        // --- CACTUS SPRITE ---
+        const cactusSprite = new Image();
+        cactusSprite.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAzNSI+PGcgZmlsbD0iI2U5NDU2MCI+PHBhdGggZD0iTTcgMGg2djE5aDQtNE0wIDNoNHYzSDIwdjRoLTRoLTE0VjNoLTV6TTAgOWg0djNIMjBWOWgtNGgtMTRWOWgtNToiLz48L2c+PC9zdmc+";
+
+        function start() { active = true; score = 0; obstacles = []; gameSpeed = 200; dino.y = 150; dino.dy = 0; spawnTimer = 0; document.getElementById('start-btn').style.display = 'none'; loop(); }
 
         function loop(t) {
             if (!active) return;
-
-            let dt = (t - lastTime) / 1000;
-            lastTime = t;
-            if (dt > 0.1) dt = 0.016; 
-
+            let dt = (t - lastTime) / 1000; lastTime = t; if (dt > 0.1) dt = 0.016; 
             ctx.clearRect(0, 0, 400, 200);
-            ctx.strokeStyle = "#4ecca3";
-            ctx.beginPath(); ctx.moveTo(0, 180); ctx.lineTo(400, 180); ctx.stroke();
 
-            // Physics
-            dino.dy += 40 * dt; 
-            dino.y += dino.dy;
+            // Ground
+            ctx.strokeStyle = "#4ecca3"; ctx.beginPath(); ctx.moveTo(0, 180); ctx.lineTo(400, 180); ctx.stroke();
+
+            // Dino Physics
+            dino.dy += 40 * dt; dino.y += dino.dy;
             if (dino.y > 150) { dino.y = 150; dino.dy = 0; dino.grounded = true; }
 
-            ctx.fillStyle = "#4ecca3";
-            ctx.fillRect(dino.x, dino.y, dino.w, dino.h);
+            // Draw Dino Sprite
+            ctx.drawImage(dinoSprite, dino.x, dino.y, dino.w, dino.h);
 
-            // --- FIXED SPAWN LOGIC ---
+            // Spawning
             spawnTimer -= dt;
-            // Only spawn if the timer has hit 0 (enforces a gap)
-            if (spawnTimer <= 0) {
-                obstacles.push({ x: 420, w: 20, h: 35 });
-                // Set the next spawn to be at least 1.5 seconds away
-                spawnTimer = 1.5 + Math.random() * 1.0; 
-            }
+            if (spawnTimer <= 0) { obstacles.push({ x: 420 }); spawnTimer = 1.5 + Math.random(); }
 
-            for (let i = 0; i < obstacles.length; i++) {
+            for (let i = obstacles.length - 1; i >= 0; i--) {
                 let o = obstacles[i];
                 o.x -= gameSpeed * dt;
-                ctx.fillStyle = "#e94560";
-                ctx.fillRect(o.x, 145, o.w, o.h);
-
-                // Collision with "Mercy" buffer
-                if (dino.x + 5 < o.x + o.w &&
-                    dino.x + dino.w - 5 > o.x &&
-                    dino.y + 5 < 145 + o.h &&
-                    dino.y + dino.h - 5 > 145) {
-                    gameOver();
-                }
+                // Draw Cactus Sprite
+                ctx.drawImage(cactusSprite, o.x, 145, 20, 35);
+                
+                // Collision
+                if (dino.x + 5 < o.x + 15 && dino.x + 25 > o.x + 5 && dino.y + 5 < 145 + 30 && dino.y + 25 > 145 + 5) { gameOver(); }
+                if (o.x < -50) obstacles.splice(i, 1);
             }
 
-            obstacles = obstacles.filter(o => o.x > -50);
-            score += 10 * dt;
-            gameSpeed += 2 * dt; 
-            document.getElementById('score').innerText = Math.floor(score);
+            score += 10 * dt; gameSpeed += 2 * dt; document.getElementById('score').innerText = Math.floor(score);
             requestAnimationFrame(loop);
         }
 
-        function gameOver() {
-            active = false;
-            ctx.fillStyle = "rgba(0,0,0,0.7)";
-            ctx.fillRect(0, 0, 400, 200);
-            ctx.fillStyle = "white";
-            ctx.font = "bold 20px Arial";
-            ctx.fillText("GAME OVER", 140, 100);
-            document.getElementById('start-btn').style.display = 'inline-block';
-        }
+        function gameOver() { active = false; ctx.fillStyle = "rgba(0,0,0,0.7)"; ctx.fillRect(0, 0, 400, 200); ctx.fillStyle = "white"; ctx.font = "bold 20px Arial"; ctx.fillText("GAME OVER", 140, 100); document.getElementById('start-btn').style.display = 'inline-block'; }
 
-        const jump = (e) => {
-            if (e) e.preventDefault();
-            if (dino.grounded && active) {
-                dino.dy = -13.5; 
-                dino.grounded = false;
-            }
-        };
-
+        const jump = (e) => { if (e) e.preventDefault(); if (dino.grounded && active) { dino.dy = -13.5; dino.grounded = false; } };
         window.addEventListener('keydown', (e) => { if (e.code === "Space") jump(e); });
         canvas.addEventListener('touchstart', jump);
     </script>
