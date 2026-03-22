@@ -6,40 +6,152 @@
     <title>Minesweeper | Skyler's Arcade</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #0f0f1b; color: white; padding: 20px; }
-        .home-btn { background: #e94560; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; display: inline-block; margin-bottom: 20px; }
-        .grid { display: grid; grid-template-columns: repeat(10, 32px); gap: 4px; justify-content: center; background: #16213e; padding: 10px; border-radius: 10px; width: fit-content; margin: 0 auto; }
-        .cell { width: 32px; height: 32px; background: #1a1a2e; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
-        .rev { background: #4ecca3 !important; color: #1a1a2e; }
-        #menu { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: #16213e; padding: 20px; border: 3px solid #4ecca3; border-radius: 15px; z-index: 10; }
-        .menu-btn { display: block; width: 120px; margin: 10px; padding: 10px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .home-btn { background: #e94560; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; display: inline-block; margin-bottom: 20px; transition: 0.3s; }
+        .home-btn:hover { background: #ff5e78; transform: scale(1.05); }
+
+        .grid { display: grid; grid-template-columns: repeat(10, 32px); gap: 4px; justify-content: center; background: #16213e; padding: 10px; border-radius: 10px; width: fit-content; margin: 0 auto; border: 2px solid #0f3460; }
+        .cell { width: 32px; height: 32px; background: #1a1a2e; border-radius: 4px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; font-size: 0.9rem; border: 1px solid #333; }
+        .revealed { background: #4ecca3 !important; color: #1a1a2e !important; cursor: default; }
+        .bomb { background: #e94560 !important; }
+        
+        #menu { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: #16213e; padding: 20px; border: 3px solid #4ecca3; border-radius: 15px; z-index: 100; box-shadow: 0 0 50px black; }
+        .menu-btn { display: block; width: 140px; margin: 10px; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        
+        .status { margin: 15px 0; font-weight: bold; color: #4ecca3; }
     </style>
 </head>
 <body>
+
     <a href="index.html" class="home-btn">🏠 Home</a>
     <h2>Minesweeper</h2>
+    <div class="status" id="status">Bombs: 15 | Safety On 🛡️</div>
+
     <div id="menu">
-        <button id="rev-btn" class="menu-btn" style="background:#4ecca3" onclick="doRev()">Reveal</button>
-        <button class="menu-btn" style="background:#f1c40f" onclick="doFlag()">Flag</button>
-        <button class="menu-btn" style="background:#555;color:white" onclick="closeM()">Cancel</button>
+        <h3 style="margin-top:0;">Action?</h3>
+        <button id="rev-btn" class="menu-btn" style="background:#4ecca3" onclick="handleReveal()">REVEAL 🔍</button>
+        <button class="menu-btn" style="background:#f1c40f" onclick="handleFlag()">FLAG 🚩</button>
+        <button class="menu-btn" style="background:#555; color:white" onclick="closeMenu()">CANCEL</button>
     </div>
+
     <div id="board" class="grid"></div>
-    <button onclick="location.reload()" style="margin-top:20px; padding:10px; cursor:pointer;">New Game</button>
+    <button onclick="location.reload()" style="margin-top:20px; padding:10px 20px; border-radius:8px; cursor:pointer; font-weight:bold;">New Game</button>
 
     <script>
-        let mB = Array(100).fill(false); let mS = Array(100).fill(0); let act = null;
-        const board = document.getElementById('board');
-        for(let i=0; i<15; i++) { let r=Math.floor(Math.random()*100); mB[r]=true; }
-        for(let i=0; i<100; i++) {
-            let c = document.createElement('div'); c.className = 'cell'; c.id = 'c'+i;
-            c.onclick = () => { act=i; document.getElementById('rev-btn').style.display = mS[i]===1?'none':'block'; document.getElementById('menu').style.display='block'; };
-            board.appendChild(c);
+        const ROWS = 10; const COLS = 10; const BOMB_COUNT = 15;
+        let boardArr = []; let bombPositions = new Set();
+        let cellStates = Array(100).fill(0); // 0: Hidden, 1: Flagged, 2: Revealed
+        let activeIdx = null; let gameOver = false;
+
+        const boardElement = document.getElementById('board');
+
+        function init() {
+            // Generate Bombs
+            while(bombPositions.size < BOMB_COUNT) {
+                bombPositions.add(Math.floor(Math.random() * 100));
+            }
+
+            // Create Cells
+            for(let i = 0; i < 100; i++) {
+                let cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = 'c' + i;
+                cell.onclick = () => openMenu(i);
+                boardElement.appendChild(cell);
+            }
         }
-        function closeM(){ document.getElementById('menu').style.display='none'; }
-        function doFlag(){ mS[act]=1; document.getElementById('c'+act).innerText='🚩'; closeM(); }
-        function doRev(){
-            closeM(); if(mB[act]){ document.getElementById('c'+act).innerText='💣'; alert('BOOM!'); location.reload(); }
-            else { document.getElementById('c'+act).classList.add('rev'); mS[act]=2; }
+
+        function openMenu(i) {
+            if(gameOver || cellStates[i] === 2) return;
+            activeIdx = i;
+            // Hide reveal button if flagged
+            document.getElementById('rev-btn').style.display = (cellStates[i] === 1) ? 'none' : 'block';
+            document.getElementById('menu').style.display = 'block';
         }
+
+        function closeMenu() { document.getElementById('menu').style.display = 'none'; }
+
+        function handleFlag() {
+            const cell = document.getElementById('c' + activeIdx);
+            if(cellStates[activeIdx] === 1) {
+                cellStates[activeIdx] = 0;
+                cell.innerText = '';
+            } else {
+                cellStates[activeIdx] = 1;
+                cell.innerText = '🚩';
+            }
+            closeMenu();
+        }
+
+        function handleReveal() {
+            closeMenu();
+            if(bombPositions.has(activeIdx)) {
+                endGame(false);
+            } else {
+                revealCell(activeIdx);
+                checkWin();
+            }
+        }
+
+        function revealCell(i) {
+            if(i < 0 || i >= 100 || cellStates[i] === 2 || cellStates[i] === 1 || gameOver) return;
+
+            const cell = document.getElementById('c' + i);
+            cellStates[i] = 2;
+            cell.classList.add('revealed');
+
+            let neighbors = getNeighbors(i);
+            let bombsNearby = neighbors.filter(n => bombPositions.has(n)).length;
+
+            if(bombsNearby > 0) {
+                cell.innerText = bombsNearby;
+                // Add colors for numbers
+                if(bombsNearby === 1) cell.style.color = "#0066ff";
+                if(bombsNearby === 2) cell.style.color = "#009900";
+                if(bombsNearby >= 3) cell.style.color = "#cc0000";
+            } else {
+                // It's a zero! Reveal all neighbors automatically
+                neighbors.forEach(n => revealCell(n));
+            }
+        }
+
+        function getNeighbors(i) {
+            let n = [];
+            let r = Math.floor(i / 10);
+            let c = i % 10;
+
+            for(let x = -1; x <= 1; x++) {
+                for(let y = -1; y <= 1; y++) {
+                    let nr = r + x; let nc = c + y;
+                    if(nr >= 0 && nr < 10 && nc >= 0 && nc < 10) {
+                        let idx = nr * 10 + nc;
+                        if(idx !== i) n.push(idx);
+                    }
+                }
+            }
+            return n;
+        }
+
+        function checkWin() {
+            let revealedCount = cellStates.filter(s => s === 2).length;
+            if(revealedCount === (100 - BOMB_COUNT)) {
+                endGame(true);
+            }
+        }
+
+        function endGame(win) {
+            gameOver = true;
+            document.getElementById('status').innerText = win ? "🏆 YOU WIN!" : "💥 BOOM! GAME OVER";
+            document.getElementById('status').style.color = win ? "#4ecca3" : "#e94560";
+            
+            // Show all bombs
+            bombPositions.forEach(pos => {
+                const cell = document.getElementById('c' + pos);
+                cell.classList.add('bomb');
+                cell.innerText = '💣';
+            });
+        }
+
+        init();
     </script>
 </body>
 </html>
