@@ -2,46 +2,118 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dino Run | Skyler's Arcade</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #0f0f1b; color: white; padding: 20px; touch-action: none; }
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #0f0f1b; color: white; padding: 20px; touch-action: none; overflow: hidden; }
         .home-btn { background: #e94560; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; display: inline-block; margin-bottom: 20px; }
-        canvas { background: #16213e; border-bottom: 4px solid #4ecca3; border-radius: 10px; width: 100%; max-width: 400px; }
+        canvas { background: #16213e; border-bottom: 4px solid #4ecca3; border-radius: 10px; width: 100%; max-width: 400px; height: auto; touch-action: none; }
+        .score-text { font-size: 1.5rem; color: #f1c40f; font-weight: bold; margin: 10px 0; }
+        .btn-start { padding: 15px 30px; font-size: 1.2rem; background: #4ecca3; color: #1a1a2e; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
     <a href="index.html" class="home-btn">🏠 Home</a>
     <h2>Dino Run</h2>
     <canvas id="canvas" width="400" height="200"></canvas>
-    <div id="score">Score: 0</div>
-    <button onclick="start()" id="start-btn" style="padding:15px; margin-top:10px; border-radius:10px; cursor:pointer;">Start Game</button>
+    <div class="score-text">Score: <span id="score">0</span></div>
+    <button onclick="start()" id="start-btn" class="btn-start">Start Game</button>
 
     <script>
-        const canvas = document.getElementById('canvas'); const ctx = canvas.getContext('2d');
-        let dino = {y:150, dy:0, grounded:true}; let obstacles = []; let active = false; let score = 0; let lastTime = 0;
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let dino = { x: 50, y: 150, w: 30, h: 30, dy: 0, jumpForce: 15, grounded: true };
+        let obstacles = [];
+        let active = false;
+        let score = 0;
+        let gameSpeed = 200; 
+        let lastTime = 0;
+        let spawnTimer = 0; // The "Cool Down" timer
 
-        function start() { active = true; score = 0; obstacles = []; dino.y = 150; document.getElementById('start-btn').style.display='none'; lastTime = performance.now(); requestAnimationFrame(loop); }
-
-        function loop(t) {
-            if(!active) return;
-            let dt = (t - lastTime)/1000; lastTime = t;
-            ctx.clearRect(0,0,400,200);
-            dino.dy += 40 * dt; dino.y += dino.dy;
-            if(dino.y > 150) { dino.y = 150; dino.dy = 0; dino.grounded = true; }
-            ctx.fillStyle = "#4ecca3"; ctx.fillRect(50, dino.y, 30, 30);
-            
-            if(Math.random() < 0.02) obstacles.push({x:400});
-            obstacles.forEach((o, i) => {
-                o.x -= 250 * dt; ctx.fillStyle = "#e94560"; ctx.fillRect(o.x, 150, 20, 30);
-                if(o.x < 80 && o.x > 50 && dino.y > 120) { active = false; alert("Game Over!"); document.getElementById('start-btn').style.display='inline'; }
-            });
-            obstacles = obstacles.filter(o => o.x > -20);
-            score += 10 * dt; document.getElementById('score').innerText = "Score: " + Math.floor(score);
+        function start() {
+            active = true;
+            score = 0;
+            obstacles = [];
+            gameSpeed = 200;
+            dino.y = 150;
+            dino.dy = 0;
+            spawnTimer = 0; 
+            document.getElementById('start-btn').style.display = 'none';
+            lastTime = performance.now();
             requestAnimationFrame(loop);
         }
-        window.addEventListener('keydown', (e) => { if(e.code==="Space" && dino.grounded) { dino.dy = -12; dino.grounded = false; } });
-        canvas.addEventListener('touchstart', () => { if(dino.grounded) { dino.dy = -12; dino.grounded = false; } });
+
+        function loop(t) {
+            if (!active) return;
+
+            let dt = (t - lastTime) / 1000;
+            lastTime = t;
+            if (dt > 0.1) dt = 0.016; 
+
+            ctx.clearRect(0, 0, 400, 200);
+            ctx.strokeStyle = "#4ecca3";
+            ctx.beginPath(); ctx.moveTo(0, 180); ctx.lineTo(400, 180); ctx.stroke();
+
+            // Physics
+            dino.dy += 40 * dt; 
+            dino.y += dino.dy;
+            if (dino.y > 150) { dino.y = 150; dino.dy = 0; dino.grounded = true; }
+
+            ctx.fillStyle = "#4ecca3";
+            ctx.fillRect(dino.x, dino.y, dino.w, dino.h);
+
+            // --- FIXED SPAWN LOGIC ---
+            spawnTimer -= dt;
+            // Only spawn if the timer has hit 0 (enforces a gap)
+            if (spawnTimer <= 0) {
+                obstacles.push({ x: 420, w: 20, h: 35 });
+                // Set the next spawn to be at least 1.5 seconds away
+                spawnTimer = 1.5 + Math.random() * 1.0; 
+            }
+
+            for (let i = 0; i < obstacles.length; i++) {
+                let o = obstacles[i];
+                o.x -= gameSpeed * dt;
+                ctx.fillStyle = "#e94560";
+                ctx.fillRect(o.x, 145, o.w, o.h);
+
+                // Collision with "Mercy" buffer
+                if (dino.x + 5 < o.x + o.w &&
+                    dino.x + dino.w - 5 > o.x &&
+                    dino.y + 5 < 145 + o.h &&
+                    dino.y + dino.h - 5 > 145) {
+                    gameOver();
+                }
+            }
+
+            obstacles = obstacles.filter(o => o.x > -50);
+            score += 10 * dt;
+            gameSpeed += 2 * dt; 
+            document.getElementById('score').innerText = Math.floor(score);
+            requestAnimationFrame(loop);
+        }
+
+        function gameOver() {
+            active = false;
+            ctx.fillStyle = "rgba(0,0,0,0.7)";
+            ctx.fillRect(0, 0, 400, 200);
+            ctx.fillStyle = "white";
+            ctx.font = "bold 20px Arial";
+            ctx.fillText("GAME OVER", 140, 100);
+            document.getElementById('start-btn').style.display = 'inline-block';
+        }
+
+        const jump = (e) => {
+            if (e) e.preventDefault();
+            if (dino.grounded && active) {
+                dino.dy = -13.5; 
+                dino.grounded = false;
+            }
+        };
+
+        window.addEventListener('keydown', (e) => { if (e.code === "Space") jump(e); });
+        canvas.addEventListener('touchstart', jump);
     </script>
 </body>
 </html>
