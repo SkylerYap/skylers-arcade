@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastermind | Skyler's Arcade</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #0f0f1b; color: white; padding: 20px; }
+        /* HOME BUTTON STYLE */
+        .home-btn { background: #e94560; color: white; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; display: inline-block; margin-bottom: 20px; transition: 0.3s; }
+        .home-btn:hover { background: #ff5e78; transform: scale(1.05); }
+        
+        input { width: 40px; height: 45px; text-align: center; font-size: 1.2rem; margin: 2px; color: black; border-radius: 5px; border: none; font-weight: bold; }
+        .row { display: grid; grid-template-columns: 1fr 2fr 1fr 1fr; gap: 10px; background: #16213e; padding: 8px; margin: 5px auto; max-width: 320px; border-radius: 8px; align-items: center; border: 1px solid #0f3460; }
+        #history { max-height: 300px; overflow-y: auto; margin-bottom: 20px; padding: 10px; }
+        .btn-main { margin-top:15px; padding:12px 30px; background:#4ecca3; color:#1a1a2e; border:none; border-radius:8px; cursor:pointer; font-weight:bold; width: 100%; max-width: 200px; }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="home-btn">🏠 Home</a>
+
+    <h2>Mastermind Logic</h2>
+
+    <div id="setup">
+        <p style="margin-bottom: 20px; color: #888;">Can you crack the 4-digit secret code?</p>
+        <button onclick="startCPU()" class="btn-main">VS COMPUTER</button>
+    </div>
+
+    <div id="game" style="display:none;">
+        <div id="history"></div>
+        <p style="color: #f1c40f; font-weight: bold;">Attempts Left: <span id="left">15</span></p>
+        <div style="margin: 15px 0;">
+            <input type="text" inputmode="numeric" maxlength="1" class="g"> 
+            <input type="text" inputmode="numeric" maxlength="1" class="g">
+            <input type="text" inputmode="numeric" maxlength="1" class="g"> 
+            <input type="text" inputmode="numeric" maxlength="1" class="g">
+        </div>
+        <button onclick="guess()" class="btn-main">Submit Guess</button>
+        <br>
+        <button onclick="location.reload()" style="background:none; border:none; color:#888; text-decoration:underline; cursor:pointer; margin-top:20px;">Restart Game</button>
+    </div>
+
+    <script>
+        let secret = []; let tries = 0;
+        const inputs = document.querySelectorAll('.g');
+
+        function startCPU() {
+            let n = ['0','1','2','3','4','5','6','7','8','9'];
+            for(let i=0;i<4;i++) secret.push(n.splice(Math.floor(Math.random()*n.length),1)[0]);
+            document.getElementById('setup').style.display='none';
+            document.getElementById('game').style.display='block';
+            inputs[0].focus();
+        }
+
+        function guess() {
+            let g = Array.from(inputs).map(i=>i.value);
+            if(g.includes('') || new Set(g).size !== 4) return alert("Please enter 4 unique digits!");
+            
+            tries++; 
+            let a=0, b=0;
+            g.forEach((d,i)=>{ if(d===secret[i]) a++; else if(secret.includes(d)) b++; });
+            
+            const r = document.createElement('div'); 
+            r.className="row";
+            r.innerHTML=`<div>${tries}</div><div style="font-weight:bold">${g.join('')}</div><div style="color:#4ecca3">${a}</div><div style="color:#f1c40f">${b}</div>`;
+            document.getElementById('history').prepend(r);
+            
+            document.getElementById('left').innerText = 15 - tries;
+            inputs.forEach(i => i.value = '');
+            inputs[0].focus();
+
+            if(a===4) { 
+                alert("Winner! You cracked the code in " + tries + " tries!"); 
+                location.reload(); 
+            } else if(tries>=15) { 
+                alert("Game Over! The code was: " + secret.join('')); 
+                location.reload(); 
+            }
+        }
+
+        // Auto-focus logic
+        inputs.forEach((inp, i) => {
+            inp.addEventListener('input', () => { if(inp.value && i < 3) inputs[i+1].focus(); });
+        });
+    </script>
+</body>
+</html>
