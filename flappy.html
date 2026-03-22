@@ -15,94 +15,56 @@
 <body>
     <a href="index.html" class="home-btn">🏠 Home</a>
     <h2>Flappy Bird</h2>
-    
     <canvas id="canvas" width="320" height="480"></canvas>
     <div class="score-text">Score: <span id="score">0</span></div>
-    
     <button onclick="start()" id="start-btn" class="btn-start">Start Flapping</button>
 
     <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        
+        const canvas = document.getElementById('canvas'); const ctx = canvas.getContext('2d');
         let bird = { x: 50, y: 150, w: 30, h: 24, velocity: 0, gravity: 0.5, jump: -8 };
-        let pipes = [];
-        let score = 0;
-        let active = false;
-        let frameCount = 0;
+        let pipes = []; let score = 0; let active = false; let frameCount = 0;
 
-        function start() {
-            bird.y = 150; bird.velocity = 0; pipes = []; score = 0; active = true; frameCount = 0;
-            document.getElementById('start-btn').style.display = 'none';
-            loop();
-        }
+        // --- BIRD SPRITE (SVG with Eye) ---
+        const birdSprite = new Image();
+        birdSprite.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMCAyNCI+PGcgZmlsbD0iI2YxYzo0ZiI+PHBhdGggZD0iTTMwIDEyQzMwIDE4LjYyNzQgMjQuNjI3NCAyNCAxOCAyNEMxMS4zNzI2IDI0IDYgMTguNjI3NCA2IDEyQzYgNS4zNzI1OCAxMS4zNzI2IDAgMTggMEMyNC42Mjc0IDAgMzAgNS4zNzI1OCAzMCAxMloiLz48L2c+PGcgZmlsbD0id2hpdGUiPjxjaXJjbGUgY3g9IjIzIiBjeT0iOSIgcj0iNCIvPjxjaXJjbGUgY3g9IjI0IiBjeT0iOSIgcj0iMSIgZmlsbD0iYmxhY2siLz48L2c+PC9zdmc+";
+
+        function start() { bird.y = 150; bird.velocity = 0; pipes = []; score = 0; active = true; frameCount = 0; document.getElementById('start-btn').style.display = 'none'; loop(); }
 
         function loop() {
             if (!active) return;
-
-            // Physics
-            bird.velocity += bird.gravity;
-            bird.y += bird.velocity;
-
-            // Background & Ground
+            bird.velocity += bird.gravity; bird.y += bird.velocity;
             ctx.fillStyle = "#70c5ce"; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Bird
-            ctx.fillStyle = "#f1c40f"; ctx.fillRect(bird.x, bird.y, bird.w, bird.h);
+            // Draw Bird Sprite
+            ctx.drawImage(birdSprite, bird.x, bird.y, bird.w, bird.h);
 
             // Pipes
             if (frameCount % 90 === 0) {
-                let gap = 120;
-                let minPipeHeight = 50;
-                let pipeHeight = Math.floor(Math.random() * (canvas.height - gap - 100)) + minPipeHeight;
-                pipes.push({ x: canvas.width, top: pipeHeight, bottom: canvas.height - pipeHeight - gap });
+                let gap = 120; let topH = Math.floor(Math.random() * (canvas.height - gap - 100)) + 50;
+                pipes.push({ x: canvas.width, topH, bottomH: canvas.height - topH - gap });
             }
 
             for (let i = pipes.length - 1; i >= 0; i--) {
-                let p = pipes[i];
-                p.x -= 3;
-
-                // Draw Pipes
+                let p = pipes[i]; p.x -= 3;
                 ctx.fillStyle = "#2ecc71";
-                ctx.fillRect(p.x, 0, 50, p.top); // Top pipe
-                ctx.fillRect(p.x, canvas.height - p.bottom, 50, p.bottom); // Bottom pipe
+                ctx.fillRect(p.x, 0, 50, p.topH); // Top
+                ctx.fillRect(p.x, canvas.height - p.bottomH, 50, p.bottomH); // Bottom
 
                 // Collision
                 if (bird.x + bird.w > p.x && bird.x < p.x + 50) {
-                    if (bird.y < p.top || bird.y + bird.h > canvas.height - p.bottom) {
-                        gameOver();
-                    }
+                    if (bird.y < p.topH || bird.y + bird.h > canvas.height - p.bottomH) gameOver();
                 }
 
-                // Scoring
-                if (p.x === bird.x) {
-                    score++;
-                    document.getElementById('score').innerText = score;
-                }
-
+                if (p.x === bird.x) { score++; document.getElementById('score').innerText = score; }
                 if (p.x + 50 < 0) pipes.splice(i, 1);
             }
 
-            // Ceiling/Floor collision
             if (bird.y + bird.h > canvas.height || bird.y < 0) gameOver();
-
-            frameCount++;
-            requestAnimationFrame(loop);
+            frameCount++; requestAnimationFrame(loop);
         }
 
-        function gameOver() {
-            active = false;
-            document.getElementById('start-btn').style.display = 'inline-block';
-            document.getElementById('start-btn').innerText = 'Try Again';
-            ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "white"; ctx.font = "bold 30px Arial"; ctx.fillText("GAME OVER", 70, 240);
-        }
-
-        const flap = (e) => {
-            if (e) e.preventDefault();
-            if (active) bird.velocity = bird.jump;
-        };
-
+        function gameOver() { active = false; document.getElementById('start-btn').style.display = 'inline-block'; ctx.fillStyle = "rgba(0,0,0,0.5)"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = "white"; ctx.font = "bold 30px Arial"; ctx.fillText("GAME OVER", 70, 240); }
+        const flap = (e) => { if (e) e.preventDefault(); if (active) bird.velocity = bird.jump; };
         window.addEventListener('keydown', (e) => { if (e.code === "Space") flap(e); });
         canvas.addEventListener('touchstart', flap);
     </script>
